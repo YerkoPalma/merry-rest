@@ -1,3 +1,5 @@
+var LevelRest = require('level-rest-parser')
+var RestParser = require('rest-parser')
 var path = require('path')
 var assert = require('assert')
 
@@ -12,6 +14,16 @@ function Nanoapp (api, opt) {
 
   this.api = api
   this.prefix = '/api/v' + (opt.version || '1')
+}
+
+Nanoapp.prototype.model = function (db, schema) {
+  assert.ok(db, 'Nanoapp: db must be defined')
+  assert.equal(typeof schema, 'string', 'Nanoapp: schema must be a string')
+
+  var model = new RestParser(LevelRest(db, {
+    schema: require(schema)
+  }))
+  return model
 }
 
 Nanoapp.prototype.resource = function (model, opt) {
@@ -41,6 +53,14 @@ Nanoapp.prototype.resource = function (model, opt) {
   idMethods.length > 0 && this.app.route(idMethods, path.join(this.prefix, opt.route, '/:id'), dispatch(model, opt))
 }
 
+Nanoapp.prototype.route = function (method, route, handler) {
+  assert.equal(typeof method, 'string')
+  assert.equal(typeof route, 'string')
+  assert.equal(typeof handler, 'function')
+
+  this.api.route(method, route, handler)
+}
+
 function dispatch (model, opt) {
   return function (req, res, ctx) {
     if (opt.before) {
@@ -64,12 +84,19 @@ function dispatch (model, opt) {
             if (req.method !== 'DELETE') {
               ctx.send(404, { message: 'resource not found' })
             } else {
-              // if there is an after hook, run it
-              ctx.send(200, { id: ctx.params.id }, { 'content-type': 'json' })
+              if (opt.after) {
+                opt.after(req, res, ctx)
+              } else {
+                ctx.send(200, { id: ctx.params.id }, { 'content-type': 'json' })
+              }
             }
           } else {
-            // if there is an after hook, run it
-            ctx.send(200, JSON.stringify(data), { 'content-type': 'json' })
+            if (opt.after) {
+              ctx.data = data
+              opt.after(req, res, ctx)
+            } else {
+              ctx.send(200, JSON.stringify(data), { 'content-type': 'json' })
+            }
           }
         }
       })
