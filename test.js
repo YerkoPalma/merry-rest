@@ -29,6 +29,7 @@ tape('rest', function (t) {
       got('http://' + address.address + ':' + address.port + '/api/v1/model')
         .then(function (response) {
           assert.fail(response)
+          server.close()
         })
         .catch(function (error) {
           assert.equal(error.response.statusCode, 404)
@@ -132,7 +133,24 @@ tape('rest', function (t) {
     assert.pass()
   })
   t.test('custom routes', function (assert) {
-    assert.plan(1)
-    assert.pass()
+    assert.plan(2)
+    var app = merry()
+    var api = rest(app)
+    api.route('GET', '/api/v1/custom', function (req, res, ctx) {
+      ctx.send(200, { message: 'custom' })
+    })
+    var server = api.start(function () {
+      var address = server.address()
+      got('http://' + address.address + ':' + address.port + '/api/v1/custom')
+        .then(function (response) {
+          assert.equal(response.statusCode, 200)
+          assert.equal(JSON.parse(response.body).message, 'custom')
+          server.close()
+        })
+        .catch(function (error) {
+          assert.fail(error)
+          server.close()
+        })
+    })
   })
 })
