@@ -1,90 +1,25 @@
 var tape = require('tape')
-var http = require('http')
-var api = require('../api')
+var merry = require('merry')
+// var memdb = require('memdb')
+var rest = require('.')
 var server
 
 tape('setup', function (t) {
-  var handler = api.start()
-  server = http.createServer(handler)
-  server.listen(8080)
+  var app = merry()
+  var api = rest(app)
+  server = api.start()
   t.end()
 })
 
-tape('/api/v1/post', function (t) {
-  t.test('POST', function (assert) {
-    assert.plan(3)
-    var post = { title: 'Foo bar', content: 'lorem ipsum' }
-
-    makeRequest('POST', '/api/v1/post', post, function (body, res) {
-      assert.equal(res.statusCode, 200)
-      assert.equal(post.title, body.data.title)
-      assert.equal(post.content, body.data.content)
-    })
+tape('teacher', function (t) {
+  t.test('create', function (assert) {
+    assert.plan(1)
+    assert.pass()
   })
 
-  t.test('GET and middleware', function (assert) {
-    assert.plan(2)
-
-    makeRequest('GET', '/api/v1/post', null, function (body, res) {
-      assert.equal(res.statusCode, 200)
-      assert.equal(res.headers['awesome-header'], 'Header set')
-    })
-  })
-
-  t.test('GET /:id', function (assert) {
-    assert.plan(3)
-    var post = { title: 'Foo bar wow', content: 'lorem ipsum' }
-
-    makeRequest('POST', '/api/v1/post', post, function (body, res) {
-      makeRequest('GET', '/api/v1/post/' + body.data.id, null, function (body, res) {
-        assert.equal(res.statusCode, 200)
-        assert.equal('Foo bar wow', body.title)
-        assert.equal('lorem ipsum', body.content)
-      })
-    })
-  })
-
-  t.test('PUT', function (assert) {
-    assert.plan(4)
-    var post = { title: 'Foo bar wow', content: 'lorem ipsum' }
-
-    makeRequest('POST', '/api/v1/post', post, function (body, res) {
-      post.title = 'New Foo Title'
-      assert.equal('Foo bar wow', body.data.title)
-      makeRequest('PUT', '/api/v1/post/' + body.data.id, post, function (body, res) {
-        assert.equal(res.statusCode, 200)
-        assert.equal('New Foo Title', body.data.title)
-        assert.equal('lorem ipsum', body.data.content)
-      })
-    })
-  })
-
-  t.test('DELETE', function (assert) {
-    assert.plan(3)
-    var post = { title: 'Foo bar wow', content: 'lorem ipsum' }
-
-    makeRequest('POST', '/api/v1/post', post, function (body, res) {
-      assert.equal(res.statusCode, 200)
-      var id = body.data.id
-      makeRequest('DELETE', '/api/v1/post/' + id, null, function (body, res) {
-        assert.equal(res.statusCode, 200)
-        makeRequest('GET', '/api/v1/post/' + id, null, function (body, res) {
-          assert.equal(res.statusCode, 404)
-        })
-      })
-    })
-  })
-
-  t.test('overwrite', function (assert) {
-    assert.end()
-  })
-
-  t.test('middleware can cancel request', function (assert) {
-    makeRequest('GET', '/api/v1/post/fake', null, function (body, res) {
-      assert.equal(res.statusCode, 500)
-      assert.equal(body.message, 'What are you doing?')
-      t.end()
-    })
+  t.test('read, update and delete not allowed', function (assert) {
+    assert.plan(1)
+    assert.pass()
   })
 })
 

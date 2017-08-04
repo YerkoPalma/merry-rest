@@ -30,7 +30,7 @@ Nanoapp.prototype.model = function (db, schema) {
 Nanoapp.prototype.resource = function (model, opt) {
   opt = opt || {}
   assert.equal(typeof opt, 'object', 'Nanoapp: opt must be an object')
-  assert.notOk(opt.only && opt.except, 'Nanoapp: can not define `only` and `except` options at the same time' )
+  assert.notOk(opt.only && opt.except, 'Nanoapp: can not define `only` and `except` options at the same time')
 
   var noIdMethods = ['GET', 'POST']
   var idMethods = ['GET', 'PUT', 'DELETE']
@@ -69,6 +69,7 @@ Nanoapp.prototype.start = function (cb) {
   var handler = this.api.start()
   var server = http.createServer(handler)
   server.listen(8080, cb)
+  return server
 }
 
 function dispatch (model, opt) {
@@ -79,7 +80,7 @@ function dispatch (model, opt) {
     } else {
       next()
     }
-    var next = function () {
+    function next () {
       if (opt.after) assert.equal(typeof opt.after, 'function', 'Nanoapp: after hook must be a function')
 
       model.dispatch(req, Object.assign({ valueEncoding: 'json' }, ctx.params), function (err, data) {

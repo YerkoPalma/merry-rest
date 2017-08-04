@@ -21,9 +21,15 @@
   },
   "repository": "YerkoPalma/merry-rest",
   "devDependencies": {
+    "memdb": "^1.3.1",
+    "merry": "^5.3.3",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
     "tap-summary": "^3.0.2",
     "tape": "^4.8.0"
+  },
+  "dependencies": {
+    "level-rest-parser": "^2.0.0",
+    "rest-parser": "^1.0.6"
   }
 }
