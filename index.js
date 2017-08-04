@@ -1,5 +1,6 @@
 var LevelRest = require('level-rest-parser')
 var RestParser = require('rest-parser')
+var http = require('http')
 var path = require('path')
 var assert = require('assert')
 
@@ -59,6 +60,15 @@ Nanoapp.prototype.route = function (method, route, handler) {
   assert.equal(typeof handler, 'function')
 
   this.api.route(method, route, handler)
+}
+
+Nanoapp.prototype.start = function (cb) {
+  cb = cb || function () {}
+  assert.equal(typeof cb, 'function', 'Nanoapp: cb must be a function')
+
+  var handler = this.api.start()
+  var server = http.createServer(handler)
+  server.listen(8080, cb)
 }
 
 function dispatch (model, opt) {

@@ -92,6 +92,12 @@ Define a special route not set by any of the rest routes. Method is a `string`,
 route is also a `string` and handler a function like next in the hooks 
 (with `req, res, ctx`).
 
+### api.start([cb])
+
+Start a regular http server with the rest routes defined. Optionally, you can 
+pass a callback to be run after the server start listening. `cb` must be a 
+function.
+
 ## License
 [MIT](/license)
 
