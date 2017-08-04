@@ -20,6 +20,24 @@ tape('rest', function (t) {
     var model = api.model(db, 'model.json')
     assert.ok(model)
   })
+  t.test('default route', function (assert) {
+    assert.plan(2)
+    var app = merry()
+    var api = rest(app, { default: function (req, res, ctx) { ctx.send(404, { message: 'not found' }) } })
+    var server = api.start(function () {
+      var address = server.address()
+      got('http://' + address.address + ':' + address.port + '/api/v1/model')
+        .then(function (response) {
+          assert.fail(response)
+        })
+        .catch(function (error) {
+          assert.equal(error.response.statusCode, 404)
+          var data = JSON.parse(error.response.body)
+          assert.equal(data.message, 'not found')
+          server.close()
+        })
+    })
+  })
   t.test('crud resource', function (assert) {
     assert.plan(3)
     var app = merry()
