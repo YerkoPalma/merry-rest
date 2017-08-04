@@ -39,28 +39,69 @@ tape('rest', function (t) {
     })
   })
   t.test('crud resource', function (assert) {
-    assert.plan(3)
+    assert.plan(8)
     var app = merry()
     var api = rest(app)
     var db = memdb()
     var model = api.model(db, 'model.json')
+    var url = null
+    var modelObject = null
     api.resource(model, 'model')
     var server = api.start(function () {
       var address = server.address()
+      url = 'http://' + address.address + ':' + address.port + '/api/v1/model'
       var body = {
         name: 'John Doe',
         mail: 'jdoe@mail.com'
       }
-      got('http://' + address.address + ':' + address.port + '/api/v1/model', {
+      // POST
+      got(url, {
         method: 'POST',
         body: JSON.stringify(body)
       })
       .then(function (response) {
         assert.equal(response.statusCode, 200)
-        var data = JSON.parse(response.body).data
-        assert.equal(data.name, 'John Doe')
-        assert.equal(data.mail, 'jdoe@mail.com')
-        server.close()
+        modelObject = JSON.parse(response.body).data
+        assert.equal(modelObject.name, 'John Doe')
+        assert.equal(modelObject.mail, 'jdoe@mail.com')
+        // GET
+        got(url)
+          .then(function (response) {
+            assert.deepEqual([modelObject], JSON.parse(response.body).data)
+            // GET :id
+            got(url + '/' + modelObject.id)
+              .then(function (response) {
+                assert.deepEqual(modelObject, JSON.parse(response.body))
+                var newBody = {
+                  name: 'James Doe',
+                  mail: 'james.doe@mail.com'
+                }
+                // PUT :id
+                got(url + '/' + modelObject.id, {
+                  method: 'PUT',
+                  body: JSON.stringify(newBody)
+                })
+                  .then(function (response) {
+                    assert.equal(response.statusCode, 200)
+                    modelObject = JSON.parse(response.body).data
+                    assert.equal(modelObject.name, 'James Doe')
+                    assert.equal(modelObject.mail, 'james.doe@mail.com')
+                    server.close()
+                  })
+                  .catch(function (error) {
+                    assert.fail(error)
+                    server.close()
+                  })
+              })
+              .catch(function (error) {
+                assert.fail(error)
+                server.close()
+              })
+          })
+          .catch(function (error) {
+            assert.fail(error)
+            server.close()
+          })
       })
       .catch(function (error) {
         assert.fail(error)
