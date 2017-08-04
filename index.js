@@ -15,6 +15,7 @@ function Nanoapp (api, opt) {
 
   this.api = api
   this.prefix = '/api/v' + (opt.version || '1')
+  opt.default && this.api.route('default', opt.default)
 }
 
 Nanoapp.prototype.model = function (db, schema) {
@@ -22,15 +23,17 @@ Nanoapp.prototype.model = function (db, schema) {
   assert.equal(typeof schema, 'string', 'Nanoapp: schema must be a string')
 
   var model = new RestParser(LevelRest(db, {
-    schema: require(schema)
+    schema: require(path.join(__dirname, schema))
   }))
   return model
 }
 
 Nanoapp.prototype.resource = function (model, opt) {
-  opt = opt || {}
-  assert.equal(typeof opt, 'object', 'Nanoapp: opt must be an object')
-  assert.notOk(opt.only && opt.except, 'Nanoapp: can not define `only` and `except` options at the same time')
+  assert.ok(typeof opt === 'object' || typeof opt === 'string', 'Nanoapp: opt must be an object or a string')
+  assert.ok(!opt.only || !opt.except, 'Nanoapp: can not define `only` and `except` options at the same time')
+
+  var route = '/' + (typeof opt === 'string' ? opt : opt.route)
+  assert.equal(typeof route, 'string', 'Nanoapp: route not defined')
 
   var noIdMethods = ['GET', 'POST']
   var idMethods = ['GET', 'PUT', 'DELETE']
@@ -50,8 +53,8 @@ Nanoapp.prototype.resource = function (model, opt) {
       return opt.except.indexOf(method) <= 0
     })
   }
-  noIdMethods.length > 0 && this.api.route(noIdMethods, path.join(this.prefix, opt.route), dispatch(model, opt))
-  idMethods.length > 0 && this.app.route(idMethods, path.join(this.prefix, opt.route, '/:id'), dispatch(model, opt))
+  noIdMethods.length > 0 && this.api.route(noIdMethods, this.prefix + route, dispatch(model, opt))
+  idMethods.length > 0 && this.api.route(idMethods, this.prefix + route + '/:id', dispatch(model, opt))
 }
 
 Nanoapp.prototype.route = function (method, route, handler) {
@@ -68,7 +71,7 @@ Nanoapp.prototype.start = function (cb) {
 
   var handler = this.api.start()
   var server = http.createServer(handler)
-  server.listen(8080, cb)
+  server.listen(process.env.PORT || 8080, process.env.IP || 'localhost', cb)
   return server
 }
 

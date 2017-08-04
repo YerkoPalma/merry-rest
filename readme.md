@@ -10,12 +10,12 @@ var rest = require('merry-rest')
 var merry = require('merry')
 
 var app = merry()
-var api = rest(api)
+var api = rest(app)
 
 // db is a levelup instance
 var model = api.model(db, 'schema.json')
 
-api.resource(model)
+api.resource(model, { route: 'schema' })
 api.start()
 ```
 
@@ -39,6 +39,8 @@ is an optional configuration object, availaible options are:
 
 - **version:**  Defaults to 1, specify the version of your api, it will be used 
 in the route.
+- **default:** Set a default route in case of a missmatch. Must be a `function` 
+like `function (reques, response, context)`
 
 ### var model = api.model(db, schema)
 
