@@ -39,7 +39,7 @@ tape('rest', function (t) {
     })
   })
   t.test('crud resource', function (assert) {
-    assert.plan(8)
+    assert.plan(9)
     var app = merry()
     var api = rest(app)
     var db = memdb()
@@ -86,7 +86,25 @@ tape('rest', function (t) {
                     modelObject = JSON.parse(response.body).data
                     assert.equal(modelObject.name, 'James Doe')
                     assert.equal(modelObject.mail, 'james.doe@mail.com')
-                    server.close()
+                    // DELETE
+                    got(url + '/' + modelObject.id, {
+                      method: 'DELETE'
+                    })
+                      .then(function (response) {
+                        got(url)
+                          .then(function (response) {
+                            assert.equal(JSON.parse(response.body).data.length, 0)
+                            server.close()
+                          })
+                          .catch(function (error) {
+                            assert.fail(error)
+                            server.close()
+                          })
+                      })
+                      .catch(function (error) {
+                        assert.fail(error)
+                        server.close()
+                      })
                   })
                   .catch(function (error) {
                     assert.fail(error)
