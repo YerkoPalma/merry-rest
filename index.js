@@ -49,10 +49,10 @@ Nanoapp.prototype.resource = function (model, opt) {
   }
   if (opt.except) {
     noIdMethods = noIdMethods.filter(function (method) {
-      return opt.except.indexOf(method) <= 0
+      return opt.except.indexOf(method) < 0
     })
     idMethods = idMethods.filter(function (method) {
-      return opt.except.indexOf(method) <= 0
+      return opt.except.indexOf(method) < 0
     })
   }
   noIdMethods.length > 0 && this.api.route(noIdMethods, this.prefix + route, dispatch(model, opt))

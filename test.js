@@ -163,7 +163,41 @@ tape('rest', function (t) {
           server.close()
         })
     })
-    // except
+  })
+  t.test('except option', function (assert) {
+    assert.plan(2)
+    var app = merry()
+    var api = rest(app)
+    var db = memdb()
+    var model = api.model(db, 'model.json')
+    api.resource(model, { route: 'model', except: ['POST'] })
+    var server = api.start(function () {
+      var address = server.address()
+      got('http://' + address.address + ':' + address.port + '/api/v1/model')
+        .then(function (response) {
+          assert.equal(response.statusCode, 200)
+          var body = {
+            name: 'John Doe',
+            mail: 'jdoe@mail.com'
+          }
+          got('http://' + address.address + ':' + address.port + '/api/v1/model', {
+            method: 'POST',
+            body: JSON.stringify(body)
+          })
+          .then(function (response) {
+            assert.fail()
+            server.close()
+          })
+          .catch(function (error) {
+            assert.equal(error.response.statusCode, 404)
+            server.close()
+          })
+        })
+        .catch(function (error) {
+          assert.fail(error)
+          server.close()
+        })
+    })
     // before
     // after
   })
