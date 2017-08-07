@@ -15,7 +15,9 @@ function Nanoapp (api, opt) {
 
   this.api = api
   this.prefix = '/api/v' + (opt.version || '1')
-  opt.default && this.api.route('default', opt.default)
+  opt.default
+    ? this.api.route('default', opt.default)
+    : this.api.route('default', function (req, res, ctx) { ctx.send(404, {}) })
 }
 
 Nanoapp.prototype.model = function (db, schema) {
@@ -39,10 +41,10 @@ Nanoapp.prototype.resource = function (model, opt) {
   var idMethods = ['GET', 'PUT', 'DELETE']
   if (opt.only) {
     noIdMethods = noIdMethods.filter(function (method) {
-      return opt.only.indexOf(method) > 0
+      return opt.only.indexOf(method) > -1
     })
     idMethods = idMethods.filter(function (method) {
-      return opt.only.indexOf(method) > 0
+      return opt.only.indexOf(method) > -1
     })
   }
   if (opt.except) {

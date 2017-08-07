@@ -11,6 +11,7 @@ tape('rest', function (t) {
     var api = rest(app)
     assert.equal(api.api, app)
     assert.equal(api.prefix, '/api/v1')
+    // test default 404
   })
   t.test('create model', function (assert) {
     assert.plan(1)
@@ -128,9 +129,43 @@ tape('rest', function (t) {
       })
     })
   })
-  t.test('crud resource with options', function (assert) {
-    assert.plan(1)
-    assert.pass()
+  t.test('only option', function (assert) {
+    assert.plan(2)
+    var app = merry()
+    var api = rest(app)
+    var db = memdb()
+    var model = api.model(db, 'model.json')
+    api.resource(model, { route: 'model', only: ['GET'] })
+    var server = api.start(function () {
+      var address = server.address()
+      got('http://' + address.address + ':' + address.port + '/api/v1/model')
+        .then(function (response) {
+          assert.equal(response.statusCode, 200)
+          var body = {
+            name: 'John Doe',
+            mail: 'jdoe@mail.com'
+          }
+          got('http://' + address.address + ':' + address.port + '/api/v1/model', {
+            method: 'POST',
+            body: JSON.stringify(body)
+          })
+          .then(function (response) {
+            assert.fail()
+            server.close()
+          })
+          .catch(function (error) {
+            assert.equal(error.response.statusCode, 404)
+            server.close()
+          })
+        })
+        .catch(function (error) {
+          assert.fail(error)
+          server.close()
+        })
+    })
+    // except
+    // before
+    // after
   })
   t.test('custom routes', function (assert) {
     assert.plan(2)
