@@ -83,9 +83,9 @@ function dispatch (model, opt) {
       assert.equal(typeof opt.before, 'function', 'Nanoapp: before hook must be a function')
       opt.before(req, res, ctx, next)
     } else {
-      next()
+      next(req, res, ctx)
     }
-    function next () {
+    function next (req, res, ctx) {
       if (opt.after) assert.equal(typeof opt.after, 'function', 'Nanoapp: after hook must be a function')
 
       model.dispatch(req, Object.assign({ valueEncoding: 'json' }, ctx.params), function (err, data) {

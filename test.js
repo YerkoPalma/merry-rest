@@ -198,8 +198,36 @@ tape('rest', function (t) {
           server.close()
         })
     })
-    // before
-    // after
+  })
+  t.test('before & after option', function (assert) {
+    assert.plan(3)
+    var app = merry()
+    var api = rest(app)
+    var db = memdb()
+    var model = api.model(db, 'model.json')
+    api.resource(model, { route: 'model', before: before, after: after })
+    var server = api.start(function () {
+      var address = server.address()
+      got('http://' + address.address + ':' + address.port + '/api/v1/model')
+        .then(function (response) {
+          assert.equal(response.statusCode, 200)
+          assert.equal(response.headers['x-hello'], 'world')
+          server.close()
+        })
+        .catch(function (error) {
+          assert.fail(error)
+          server.close()
+        })
+    })
+    function before (req, res, ctx, next) {
+      req.headers['x-hello'] = 'world'
+      next(req, res, ctx)
+    }
+    function after (req, res, ctx) {
+      assert.pass()
+      ctx.send(200, ctx.data, req.headers)
+      server.close()
+    }
   })
   t.test('custom routes', function (assert) {
     assert.plan(2)
