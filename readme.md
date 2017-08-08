@@ -34,13 +34,16 @@ DELETE  /api/v1/schema/:id
 
 ### api = rest(app [, opts])
 
-Create a rest api instance. `app` is a merry instance and is mandatory. `opts` 
+Create a rest api instance. `app` is a [merry][merry] instance and is mandatory. `opts` 
 is an optional configuration object, availaible options are:
 
 - **version:**  Defaults to 1, specify the version of your api, it will be used 
 in the route.
 - **default:** Set a default route in case of a missmatch. Must be a `function` 
 like `function (reques, response, context)`
+
+The returned object has two properties: `api` the merry instance, and `prefix` 
+the prefix of all the routes. The prefix has the form `'/api/v:version'`
 
 ### var model = api.model(db, schema)
 
@@ -50,10 +53,15 @@ Create a [rest-parser][rest-parser] instance using
 the path to the json file that contains your schema. The rest-parser instance 
 returned here is used later in the `resource` method.
 
-### api.resource(model [, opts])
+### api.resource(model , opts)
 
-Generate the rest routes for the given `model`. As you can guess, `model` is 
-mandatory. The method also accept an `opts` object, with the following options.
+Generate the rest routes for the given `model`. You must provide a model and 
+opts argument, where opts can be a string or an object. If opts is a string, 
+then that will be the route of your model, it it is an object, it can have the 
+following properties:
+
+- **route:** The only required property. Must be a string indicating your model 
+route.
 
 - **only:** Must be an `array` of `strings`. If defined, set explicity the 
 methods for which this resource define routes. For example, seting 
@@ -86,7 +94,10 @@ case, the actual route method. So if you don't call `next(req, res, ctx)` your
 actual route wont be called, this is useful if your before hook must cancell the 
 request
 
-- **after:** As you might guess, this is like `before` hook, but after.
+- **after:** As you might guess, this is like `before` hook, but after. 
+Difference are that you don't provide a next hook, because there is nothing 
+next. Also, you must end the request manually here, this is easily done with 
+merry context object, like [`ctx.send(200, bodyData, headers)`][send]
 
 ### api.route(method, route, handler)
 
@@ -105,3 +116,5 @@ function.
 
 [rest-parser]: https://github.com/karissa/node-rest-parser
 [level-rest-parser]: https://github.com/karissa/level-rest-parser
+[merry]: https://github.com/shipharbor/merry
+[send]: https://github.com/shipharbor/merry#ctxsendstatuscode-data-headers
