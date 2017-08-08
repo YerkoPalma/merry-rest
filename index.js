@@ -25,7 +25,7 @@ Nanoapp.prototype.model = function (db, schema) {
   assert.equal(typeof schema, 'string', 'Nanoapp: schema must be a string')
 
   var model = new RestParser(LevelRest(db, {
-    schema: require(path.join(__dirname, schema))
+    schema: require(path.join(process.cwd(), schema))
   }))
   return model
 }
